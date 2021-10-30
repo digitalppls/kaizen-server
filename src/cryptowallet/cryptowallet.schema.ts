@@ -3,7 +3,8 @@ import {ApiProperty} from "@nestjs/swagger";
 import {Document, Types} from "mongoose";
 import {Network, Symbol} from "src/currency/currency.model";
 import {CryptoWalletBalance} from "src/cryptowallet/cryptowallet-balance.schema";
-import {UserSchema} from "src/user/user.schema";
+import {CurrencyService} from "src/currency/currency.service";
+
 
 export class Supported {
     @ApiProperty({type: String, enum: Symbol})
@@ -17,7 +18,7 @@ export class Supported {
 
 }
 
-@Schema()
+@Schema({autoIndex: true, toJSON: {virtuals: true}, toObject: {virtuals: true}})
 export class CryptoWallet {
     @ApiProperty({type: Types.ObjectId})
     _id?: Types.ObjectId;
@@ -25,7 +26,6 @@ export class CryptoWallet {
     @ApiProperty({type: Types.ObjectId})
     @Prop({index: true, required: true, type: Types.ObjectId})
     userId?: Types.ObjectId;
-
 
     @ApiProperty({type: String, description: "0x......"})
     @Prop({index: true, required: true, type: String})
@@ -39,6 +39,7 @@ export class CryptoWallet {
     balances?: CryptoWalletBalance[];
 }
 
+
 export type CryptoWalletDocument = CryptoWallet & Document;
 export const CryptoWalletSchema = SchemaFactory.createForClass(CryptoWallet);
 
@@ -50,12 +51,13 @@ CryptoWalletSchema.virtual('balances', {
 });
 
 
-
-
-
 CryptoWalletSchema.methods.toJSON = function () {
     const obj = this.toObject();
     delete obj['__v'];
     delete obj['privateKey'];
+    for (let balance of obj["balances"]) {
+        balance["amountUsd"] = CurrencyService.toUsd(balance['symbol'], balance['amount']);
+        delete balance["__v"];
+    }
     return obj;
 };
