@@ -1,6 +1,6 @@
 import {IsEnum, IsNumber, IsPositive, IsString,} from "class-validator";
 import {ApiProperty} from "@nestjs/swagger";
-import {Symbol} from "src/currency/currency.model";
+import {Symbol} from "src/currency/currency.schema";
 
 
 export class SwapTokenDto {
