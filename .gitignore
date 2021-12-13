@@ -1,8 +1,0 @@
-/node_modules/
-/dist/
-/.env
-/.idea/
-/public/
-/deploy.sh
-/ecosystem.config.js
-/src.tar.gz
