@@ -1,0 +1,13 @@
+/dist/
+/node_modules/
+/public/
+/src.tar.gz
+/ecosystem.config.js
+/deploy.sh
+/.env
+/.idea/.gitignore
+/.idea/kaizen.iml
+/.idea/modules.xml
+/.idea/vcs.xml
+/.idea/webServers.xml
+.gitignore
