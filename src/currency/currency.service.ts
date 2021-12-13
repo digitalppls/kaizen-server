@@ -31,10 +31,7 @@ export class CurrencyService {
                 price: 1, date
             }, {symbol: "USDCUSDT", price: 1, date}, {symbol: "BUSDUSDT", price: 1, date});
         }
-        // this.push({symbol: "OROOROUSDT", price: Number(this.configService.get<number>("PRICE_ORO_USD"))});
-        // this.push({symbol: "FCOINUSDT", price: Number(this.configService.get<number>("PRICE_FCOIN_USD"))});
-        // this.push({symbol: "FCASHUSDT", price: Number(this.configService.get<number>("PRICE_FCASH_USD"))});
-    }
+       }
 
 
     /* From SaleTokenService */

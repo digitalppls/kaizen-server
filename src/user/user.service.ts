@@ -221,17 +221,6 @@ export class UserService {
         return true;
     }
 
-  /*  async buyToken(userId: Types.ObjectId, dto: BuyTokenDto): Promise<User> {
-        const usd = CurrencyService.toUsd(Symbol.ORO, dto.toAmount);
-        const value = CurrencyService.fromUsd(dto.fromSymbol, usd);
-
-        const {operations} = await this.walletIncrement(userId, dto.fromSymbol, -value, OperationType.TOKEN_SWAP)
-        const {user} = await this.walletIncrement(userId, Symbol.ORO, dto.toAmount, OperationType.TOKEN_SWAP, operations[0]._id);
-        // await this.linearBonus(user,operations)
-        return user;
-    }
-*/
-
     async checkStatusUp(users:User[]):Promise<{user:User, newStatus:Status}[]> {
         // Check status update - проверяем не достгнут ли новый статус
         const list: {user:User, newStatus:Status}[] = [];

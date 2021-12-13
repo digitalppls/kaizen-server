@@ -21,48 +21,7 @@ export class TokenService {
         private readonly  saleTokenService:SaleTokenService,
     ) {
     }
-    // async fcoin2oro(userId: Types.ObjectId, dto: SwapTokenDto):Promise<SwapTokenResponse> {
-    //     const usd = CurrencyService.toUsd(Symbol.ORO, dto.toAmount);
-    //     const fcoin = CurrencyService.fromUsd(Symbol.FCOIN, usd);
-    //
-    //     const minused = await this.userService.walletIncrement(userId, Symbol.FCOIN, -fcoin, OperationType.TOKEN_SWAP)
-    //     const plused= await this.userService.walletIncrement(userId, Symbol.ORO, dto.toAmount, OperationType.TOKEN_SWAP, minused.operations[0]._id);
-    //     return {user:plused.user, operations:[...minused.operations, ...plused.operations]};
-    // }
-    //
-    // async fcash2fcoin(userId: Types.ObjectId, dto: SwapTokenDto):Promise<SwapTokenResponse> {
-    //     const usd = CurrencyService.toUsd(Symbol.FCOIN, dto.toAmount);
-    //     const fcash = CurrencyService.fromUsd(Symbol.FCASH, usd);
-    //
-    //     const minused = await this.userService.walletIncrement(userId, Symbol.FCASH, -fcash, OperationType.TOKEN_SWAP)
-    //     const plused = await this.userService.walletIncrement(userId, Symbol.FCOIN, dto.toAmount, OperationType.TOKEN_SWAP, minused.operations[0]._id);
-    //
-    //     const oroFee = CurrencyService.fromUsd(Symbol.ORO, usd*0.10);
-    //     let minusedFee = await this.userService.walletIncrement(userId, Symbol.ORO, -oroFee, OperationType.TOKEN_SWAP_FEE, plused.operations[0]._id)
-    //     if(!minusedFee) {
-    //         const fcoinFee = CurrencyService.fromUsd(Symbol.FCOIN, usd * 0.10);
-    //         minusedFee = await this.userService.walletIncrement(userId, Symbol.FCOIN, -fcoinFee, OperationType.TOKEN_SWAP_FEE, plused.operations[0]._id)
-    //     }
-    //     return {user:minusedFee.user, operations:[...minused.operations, ...plused.operations,...minusedFee.operations]};
-    // }
-    //
-    //
-    //
-    // async fcoin2fcash(userId: Types.ObjectId, dto: SwapTokenDto):Promise<SwapTokenResponse> {
-    //     const usd = CurrencyService.toUsd(Symbol.FCASH, dto.toAmount);
-    //     const fcoin = CurrencyService.fromUsd(Symbol.FCOIN, usd);
-    //
-    //     const minused = await this.userService.walletIncrement(userId, Symbol.FCOIN, -fcoin, OperationType.TOKEN_SWAP)
-    //     const plused = await this.userService.walletIncrement(userId, Symbol.FCASH, dto.toAmount, OperationType.TOKEN_SWAP, minused.operations[0]._id);
-    //
-    //     const oroFee = CurrencyService.fromUsd(Symbol.ORO, usd * 0.10);
-    //     let minusedFee = await this.userService.walletIncrement(userId, Symbol.ORO, -oroFee, OperationType.TOKEN_SWAP_FEE, plused.operations[0]._id)
-    //     if(!minusedFee) {
-    //         const fcashFee = CurrencyService.fromUsd(Symbol.FCASH, usd * 0.10);
-    //         minusedFee = await this.userService.walletIncrement(userId, Symbol.FCASH, -fcashFee, OperationType.TOKEN_SWAP_FEE, plused.operations[0]._id)
-    //     }
-    //     return {user:minusedFee.user, operations:[...minused.operations, ...plused.operations,...minusedFee.operations]};
-    // }
+
 
     async swap(userId: Types.ObjectId, dto: SwapTokenDto):Promise<SwapTokenResponse> {
         const saleTokens:SaleToken[] = await this.saleTokenService.list();

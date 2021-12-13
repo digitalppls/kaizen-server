@@ -91,7 +91,6 @@ export class PackageService {
         if(investedAmountUsd<thepackage.minAmountUsd) throw new HttpException(Exceptions.CONDITIONS_NOT_MET, HttpStatus.CONFLICT);
         if(investedAmountUsd>thepackage.maxAmountUsd) throw new HttpException(Exceptions.CONDITIONS_NOT_MET, HttpStatus.CONFLICT);
 
-        // const fee = await this.userService.walletIncrement(userId, Symbol.ORO, -1, OperationType.PACKAGE_BUY_FEE, thepackage._id, undefined, undefined, userId, true);
 
         const packageBuy = await this.userService.walletIncrement(userId, dto.symbol, -dto.amount, OperationType.PACKAGE_BUY, thepackage._id, undefined, undefined, userId, true);
         const fathers = await this.bonusPackageService.send(packageBuy.user,packageBuy.operations);

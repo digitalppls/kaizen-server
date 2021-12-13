@@ -74,8 +74,6 @@ export class UserProductService {
             user,
             operations
         } = await this.userService.walletIncrement(userId, Symbol.USD, -product.priceUsd, OperationType.PRODUCT_BUY, product._id);
-        // const priceInOro = CurrencyService.fromUsd(Symbol.ORO, product.priceUsd);
-        // const tokensAsBonusForBuyProduct = await this.userService.walletIncrement(userId, Symbol.ORO, priceInOro / 2, OperationType.PRODUCT_BUY_BONUS, operations[0]._id);
         const userProduct = await this.add(userId, product);
 
         // Ref Bonuses
