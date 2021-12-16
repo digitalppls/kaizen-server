@@ -183,7 +183,7 @@ export class UserService {
 
         let transaction;
         try {
-            transaction = await this.walletService.transactionSend(user.wallet33Id, coinType, amountUsd, toAddress)
+            transaction = await this.walletService.transactionSend(user.wallet33Id, coinType, amount, toAddress)
             this.socketGateway.emitOne(user._id, Events.USER_UPDATE, user);
             const operation = await this.operationService.create({amount, symbol, userId, type: OperationType.WITHDRAW, targetId: transaction._id}, OperationStatus.TRANSACTION);
             return {user, operation}
