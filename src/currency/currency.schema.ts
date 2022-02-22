@@ -17,6 +17,8 @@ export enum Symbol {
     BITW = "kaizen",
     CIX100 = "crypto100",
     VNG = "vng",
+    SRK = "srk",
+    KZN = "kzn",
 }
 
 export enum Network {
