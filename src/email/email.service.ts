@@ -51,6 +51,7 @@ export class EmailService {
             text: 'Please confirm your email: '+url ,
             html: '<a href="'+url+'">Confirm your email</a>',
         }
+        console.log(msg)
         sgMail
             .send(msg)
             .then(() => {
@@ -75,6 +76,7 @@ export class EmailService {
             text: 'Click to link for set new password: '+url ,
             html: '<a href="'+url+'">Set new password</a>',
         }
+        console.log(msg)
         sgMail
             .send(msg)
             .then(() => {
