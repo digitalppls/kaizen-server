@@ -43,11 +43,13 @@ export class TokenService {
 
         const bonusTokensList: BonusToken[] = await this.bonusTokenService.bonusList();
         for (let i = 0; i < user.fathers.length && i < bonusTokensList.length; i++) {
-            const {percent} = bonusTokensList[i];
+            const {percent, bonusAsGetSymbol} = bonusTokensList[i];
             const fatherId = user.fathers[i]
-            for (let o = 0; o < minused.operations.length; o++) {
-                const operation = minused.operations[o];
-                const updateUser = o === minused.operations.length - 1;
+            const targetOperationsForBonus = bonusAsGetSymbol ? operations : minused.operations;
+
+            for (let o = 0; o < targetOperationsForBonus.length; o++) {
+                const operation = targetOperationsForBonus[o];
+                const updateUser = o === targetOperationsForBonus.length - 1;
                 await this.userService.walletIncrement(fatherId, operation.symbol, Math.abs(operation.amount * percent / 100), OperationType.TOKEN_REF_BONUS, operation._id, undefined, undefined, user._id, updateUser)
             }
         }

@@ -1,7 +1,7 @@
 import {Prop, Schema, SchemaFactory} from "@nestjs/mongoose";
 import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
 import {Document, Types} from "mongoose";
-import {IsEnum, IsMongoId, IsNumber, IsOptional, IsPositive} from "class-validator";
+import {IsBoolean, IsEnum, IsMongoId, IsNumber, IsOptional, IsPositive} from "class-validator";
 import {Symbol} from "src/currency/currency.schema";
 
 
@@ -25,6 +25,12 @@ export class BonusToken {
     @IsOptional()
     @IsEnum(Symbol)
     readonly toSymbol: Symbol;
+
+    @ApiProperty({type: Boolean, required: true, description: "Начислять бонус в той валюте, которую купили (а не потратили)"})
+    @Prop({index: true, required: true, type: Boolean})
+    @IsOptional()
+    @IsBoolean()
+    readonly bonusAsGetSymbol?: boolean = false;
 
     @ApiPropertyOptional({type: Number, description: "Процент от суммы для вознаграждения"})
     @Prop({index: true, required: true, type: Number})
