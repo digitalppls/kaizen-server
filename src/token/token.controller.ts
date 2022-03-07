@@ -4,12 +4,10 @@ import {RequestModel} from "src/auth/auth.middleware";
 import {SwapTokenDto} from "src/token/dto/swap-token.dto";
 import {TokenService} from "src/token/token.service";
 import {SwapTokenResponse} from "src/token/dto/swap-token.response";
-import {ListBonusProductResponse} from "src/product/dto/list-bonus-product.response";
 import {RateLimiterGuard} from "src/guard/rateLimiter.guard";
 import {Throttle} from "@nestjs/throttler";
 import {ListBonusTokenResponse} from "src/token/dto/list-bonus-token.response";
 import {BonusTokenService} from "src/token/bonus-token.service";
-import {BonusProduct} from "src/product/bonus-product.schema";
 import {BonusToken} from "src/token/bonus-token.schema";
 import {ListSaleTokenResponse} from "src/token/dto/list-sale-token.response";
 import {SaleTokenService} from "src/token/sale-token.service";
@@ -35,10 +33,10 @@ export class TokenController {
     @ApiOperation({summary: "Список сейлов токена", description: ""})
     @ApiResponse({status: 201, type: ListSaleTokenResponse})
     @UseGuards(RateLimiterGuard)
-    @ApiParam({name:"symbol", type:String, enum:Symbol})
+    @ApiParam({name: "symbol", type: String, enum: Symbol})
     @Throttle(100, 10)
-    async saleList(@Param("symbol") symbol:Symbol): Promise<ListSaleTokenResponse> {
-        const list = await this.saleTokenService.list(symbol);
+    async saleList(@Param("symbol") symbol: Symbol | string): Promise<ListSaleTokenResponse> {
+        const list = await this.saleTokenService.list(symbol === 'all' ? null : symbol as Symbol);
         return {list}
     }
 
@@ -55,8 +53,6 @@ export class TokenController {
         const list = await this.saleTokenService.list(saleToken.symbol);
         return {list}
     }
-
-
 
 
     // Sale
@@ -85,7 +81,6 @@ export class TokenController {
         const list = await this.bonusTokenService.bonusList();
         return {list}
     }
-
 
 
     // Swap
