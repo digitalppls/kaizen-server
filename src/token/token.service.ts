@@ -26,11 +26,13 @@ export class TokenService {
     async swap(userId: Types.ObjectId, dto: SwapTokenDto):Promise<SwapTokenResponse> {
         const saleTokens:SaleToken[] = await this.saleTokenService.list();
 
-        const isBuyToken = saleTokens.find(x=>x.symbol===dto.toSymbol) && !saleTokens.find(x=>x.symbol===dto.fromSymbol)
-        if( !isBuyToken ) throw new HttpException(Exceptions.INCORRECT_TYPE, HttpStatus.BAD_REQUEST);
+        const isBuyToken = saleTokens.find(x=>x.symbol===dto.toSymbol)
+        const isSellToken = saleTokens.find(x=>x.symbol===dto.fromSymbol)
+
+        if( !dto.fromAmount || dto.fromAmount<=0 ) throw new HttpException(Exceptions.INCORRECT_TYPE, HttpStatus.BAD_REQUEST);
 
         if( isBuyToken ){
-            const sale = await this.saleTokenService.getCurrent(Symbol.VNG);
+            const sale = await this.saleTokenService.getCurrent(dto.toSymbol);
             if(sale && sale.value>sale.maxValue) throw new HttpException(Exceptions.SALE_COMPLETE, HttpStatus.CONFLICT)
         }
 
@@ -40,6 +42,7 @@ export class TokenService {
         const {operations, user} = await this.userService.walletIncrement(userId, dto.toSymbol, toAmount, OperationType.TOKEN_SWAP, minused.operations[0]._id);
 
         if(isBuyToken) this.saleTokenService.IncrementValue(dto.toSymbol, toAmount)
+        if(isSellToken) this.saleTokenService.IncrementValue(dto.fromSymbol, -dto.fromAmount)
 
         const bonusTokensList: BonusToken[] = await this.bonusTokenService.bonusList();
         for (let i = 0; i < user.fathers.length && i < bonusTokensList.length; i++) {
