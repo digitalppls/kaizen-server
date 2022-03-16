@@ -60,7 +60,8 @@ export class UserService {
 
         let fathers = [];
         if (createUserDto.ref) {
-            const father = await this.findOne(Types.ObjectId(createUserDto.ref), false);
+            const q = createUserDto.ref.length===24 ? {_id:Types.ObjectId(createUserDto.ref)} : {num_id:Number(createUserDto.ref)}
+            const father = await this.findOne(q, false);
             fathers = father.fathers;
             fathers.unshift(father._id);
         }
@@ -270,8 +271,9 @@ export class UserService {
         return user;
     }
 
-    async getUserName(_id: Types.ObjectId): Promise<string> {
-        const user = await this.userModel.findById(_id, {username: 1});
+    async getUserName(_id: Types.ObjectId | number): Promise<string> {
+        const q = (_id+"").length===24 ? {_id} : {num_id:Number(_id)}
+        const user = await this.userModel.findOne(q, {username: 1});
         if(!user) throw new HttpException(Exceptions.USER_NOT_FOUND,HttpStatus.NOT_FOUND);
             return user.username
     }
