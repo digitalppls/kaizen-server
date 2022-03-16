@@ -68,7 +68,7 @@ export class UserService {
         const {_id, assets} = withWallets ? await this.walletService.create() : {_id: null, assets: null};
         const {email, password, chat_id, username, first_name, last_name, language_code} = createUserDto;
 
-        const count = await this.userModel.countDocuments({});
+        const count = await this.userModel.countDocuments();
 
         console.log("count",count)
         return await this.userModel.create({
