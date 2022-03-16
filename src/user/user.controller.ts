@@ -62,7 +62,7 @@ export class UserController {
     @ApiQuery({name: "ref", type: String})
     @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
     async username(@Query("ref") ref: string): Promise<string> {
-        return await this.userService.getUserName(Types.ObjectId(ref));
+        return await this.userService.getUserName((ref));
     }
 
 

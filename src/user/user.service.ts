@@ -271,7 +271,7 @@ export class UserService {
         return user;
     }
 
-    async getUserName(_id: Types.ObjectId | number): Promise<string> {
+    async getUserName(_id: string | number): Promise<string> {
         const q = (_id+"").length===24 ? {_id} : {num_id:Number(_id)}
         console.log({q})
         const user = await this.userModel.findOne(q, {username: 1});
