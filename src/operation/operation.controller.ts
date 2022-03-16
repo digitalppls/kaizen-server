@@ -30,7 +30,7 @@ export class OperationController {
     @ApiQuery({name:"_id", description:"_id операции"})
     @ApiOperation({description:"Получение операции по _id"})
     async get(@Query("_id") _id:string):Promise<GetOperationResponse>{
-        if(!Types.ObjectId.isValid(_id)) throw new HttpException(Exceptions.CONDITIONS_NOT_MET, HttpStatus.NOT_ACCEPTABLE);
+        if(!Types.ObjectId(_id)) throw new HttpException(Exceptions.CONDITIONS_NOT_MET, HttpStatus.NOT_ACCEPTABLE);
         return {operation: await this.operationService.get(Types.ObjectId(_id))};
     }
 }

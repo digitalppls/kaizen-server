@@ -1,6 +1,6 @@
 import {Prop, Schema, SchemaFactory} from "@nestjs/mongoose";
 import {ApiProperty} from "@nestjs/swagger";
-import {Document, Types} from "mongoose";
+import {Document, Model, Types} from "mongoose";
 import {Wallet} from "../wallet/wallet.schema";
 import {CurrencyService} from "../currency/currency.service";
 import {UserProduct} from "src/product/user-product.schema";
@@ -24,6 +24,10 @@ export class User {
     @ApiProperty({type: [Object], description: "адреса Кошельков на Wallet33"})
     @Prop({index: false, required: false, type: Types.ObjectId})
     wallet33Assets?: { network: string, address: string }[];
+
+    @ApiProperty({type: Number, description: "id"})
+    @Prop({index: true, required: false, type: Number})
+    id?: number;
 
     @ApiProperty({type: Number, description: "id в телеге"})
     @Prop({index: true, required: false, type: Number})

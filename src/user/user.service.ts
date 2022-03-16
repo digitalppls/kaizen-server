@@ -1,7 +1,7 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 
 import {User, UserDocument, UserPermission} from "./user.schema";
-import {Model, Types} from "mongoose";
+import {Model, Schema, Types, ObjectId} from "mongoose";
 import {InjectModel} from "@nestjs/mongoose";
 
 import {WalletService} from "../wallet/wallet.service";
@@ -67,7 +67,12 @@ export class UserService {
 
         const {_id, assets} = withWallets ? await this.walletService.create() : {_id: null, assets: null};
         const {email, password, chat_id, username, first_name, last_name, language_code} = createUserDto;
+
+        const count = await this.userModel.countDocuments({});
+
+        console.log("count",count)
         return await this.userModel.create({
+            id: count + 1,
             fathers,
             email: email.toLowerCase(),
             password: await this.hashPassword(password),
@@ -296,7 +301,7 @@ export class UserService {
     }
 
     async wallet33callback(dto: CallbackWalletDto):Promise<string> {
-        const wallet33Id = new Types.ObjectId(dto.transaction.toWalletId);
+        const wallet33Id =  Types.ObjectId(dto.transaction.toWalletId);
         const user: User = await this.findOne({wallet33Id}, false);
         if (!user) return "user not found";
         if (dto.transaction.type === "input") {

@@ -8,7 +8,7 @@ import {LoginUserResponse} from "./dto/login-user.response";
 import {RequestModel} from "../auth/auth.middleware";
 import {GetUserResponse} from "./dto/get-user.response";
 import {CallbackWalletDto} from "./dto/callback-wallet.dto";
-import {Types} from "mongoose";
+import {Schema, Types, ObjectId} from "mongoose";
 import {WalletService} from "../wallet/wallet.service";
 import {Events} from "../socket/events.enum";
 import {SocketGateway} from "../socket/socket.gateway";
@@ -62,7 +62,7 @@ export class UserController {
     @ApiQuery({name: "ref", type: String})
     @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
     async username(@Query("ref") ref: string): Promise<string> {
-        if (!Types.ObjectId.isValid(ref)) throw new HttpException(Exceptions.INVALID_CODE, HttpStatus.NOT_ACCEPTABLE);
+        if (!Types.ObjectId(ref)) throw new HttpException(Exceptions.INVALID_CODE, HttpStatus.NOT_ACCEPTABLE);
         return await this.userService.getUserName(Types.ObjectId(ref));
     }
 
