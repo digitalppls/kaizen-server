@@ -273,6 +273,7 @@ export class UserService {
 
     async getUserName(_id: Types.ObjectId | number): Promise<string> {
         const q = (_id+"").length===24 ? {_id} : {num_id:Number(_id)}
+        console.log({q})
         const user = await this.userModel.findOne(q, {username: 1});
         if(!user) throw new HttpException(Exceptions.USER_NOT_FOUND,HttpStatus.NOT_FOUND);
             return user.username
