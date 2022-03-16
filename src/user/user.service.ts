@@ -68,9 +68,17 @@ export class UserService {
         const {_id, assets} = withWallets ? await this.walletService.create() : {_id: null, assets: null};
         const {email, password, chat_id, username, first_name, last_name, language_code} = createUserDto;
 
-        const count = await this.userModel.countDocuments();
 
+        let count = -1;
+        try {
+            count = await this.userModel.countDocuments();
+        }catch (err){
+            console.log("error get count", err)
+        }
         console.log("count",count)
+        if(count<0)throw new HttpException(Exceptions.UNKNOWN_ERROR, HttpStatus.NOT_ACCEPTABLE);
+
+
         return await this.userModel.create({
             id: count + 1,
             fathers,
