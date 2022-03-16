@@ -62,7 +62,6 @@ export class UserController {
     @ApiQuery({name: "ref", type: String})
     @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
     async username(@Query("ref") ref: string): Promise<string> {
-        if (!Types.ObjectId(ref)) throw new HttpException(Exceptions.INVALID_CODE, HttpStatus.NOT_ACCEPTABLE);
         return await this.userService.getUserName(Types.ObjectId(ref));
     }
 
