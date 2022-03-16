@@ -44,7 +44,6 @@ export class CreateUserDto{
 
     @ApiPropertyOptional({type: String, required: false, description: "реферальный код"})
     @IsOptional()
-    @IsMongoId()
     readonly ref?:string;
 
     @ApiPropertyOptional({type: String, required: false, description: "Имя"})
