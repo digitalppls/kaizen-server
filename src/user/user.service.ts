@@ -69,18 +69,11 @@ export class UserService {
         const {email, password, chat_id, username, first_name, last_name, language_code} = createUserDto;
 
 
-        let count = -1;
-        try {
-            count = await this.userModel.countDocuments();
-        }catch (err){
-            console.log("error get count", err)
-        }
-        console.log("count",count)
-        if(count<0)throw new HttpException(Exceptions.UNKNOWN_ERROR, HttpStatus.NOT_ACCEPTABLE);
 
+        const count = await this.userModel.countDocuments();
 
         return await this.userModel.create({
-            id: count + 1,
+            num_id: count + 1,
             fathers,
             email: email.toLowerCase(),
             password: await this.hashPassword(password),

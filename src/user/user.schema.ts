@@ -25,9 +25,9 @@ export class User {
     @Prop({index: false, required: false, type: Types.ObjectId})
     wallet33Assets?: { network: string, address: string }[];
 
-    @ApiProperty({type: Number, description: "id"})
+    @ApiProperty({type: Number, description: "num_id"})
     @Prop({index: true, required: false, type: Number})
-    id?: number;
+    num_id?: number;
 
     @ApiProperty({type: Number, description: "id в телеге"})
     @Prop({index: true, required: false, type: Number})
