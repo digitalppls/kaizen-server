@@ -59,7 +59,7 @@ export class PackageService {
                 const farmedAmountUsd = Number(userPackage.investedAmountUsd)*todayPercent/100;
                 // const farmedAmountFCoin = CurrencyService.fromUsd(Symbol.FCOIN, farmedAmountUsd);
                 this.userPackageModel.updateOne({_id:userPackage._id},{$inc:{farmedAmountUsd}}).then()
-                this.operationService.create({amount:farmedAmountUsd, symbol:Symbol.USD, userId:userPackage.userId, targetId:userPackage._id, type:OperationType.PACKAGE_FARMING}).then()
+                this.operationService.create({amount:farmedAmountUsd, symbol:Symbol.USDT, userId:userPackage.userId, targetId:userPackage._id, type:OperationType.PACKAGE_FARMING}).then()
                 Logger.log("FARMING",(Number(userPackage.farmedAmountUsd)+farmedAmountUsd)+' / '+(Number(userPackage.investedAmountUsd)*(1+thepackage.totalProfitPercent/100)))
             }
         }
@@ -102,7 +102,7 @@ export class PackageService {
             if(userPackage){
                 const investedAmountUsd = statusUp.newStatus.package_up_usd;
                 await this.userPackageModel.updateOne({_id:userPackage._id}, {$inc: {investedAmountUsd}});
-                await this.operationService.create({userId:statusUp.user._id, type:OperationType.STATUS_UP_BONUS_PACKAGE, amount:investedAmountUsd, symbol:Symbol.USD, targetId:statusUp.newStatus._id})
+                await this.operationService.create({userId:statusUp.user._id, type:OperationType.STATUS_UP_BONUS_PACKAGE, amount:investedAmountUsd, symbol:Symbol.USDT, targetId:statusUp.newStatus._id})
             }
         }
 
@@ -130,7 +130,7 @@ export class PackageService {
         const amountUsd = userPackage.farmedAmountUsd-userPackage.withdrawnAmountUsd;
         // const amountFCoin = CurrencyService.fromUsd(Symbol.FCOIN, amountUsd);
         userPackage = await this.userPackageModel.findByIdAndUpdate(userPackage._id, {$set:{withdrawnAmountUsd:userPackage.farmedAmountUsd, withdrawnDate:new Date()}},{new:true});
-        const {user} = await this.userService.walletIncrement(userId,Symbol.USD, amountUsd,OperationType.PACKAGE_WITHDRAW, userPackage._id,undefined,undefined,undefined,true);
+        const {user} = await this.userService.walletIncrement(userId,Symbol.USDT, amountUsd,OperationType.PACKAGE_WITHDRAW, userPackage._id,undefined,undefined,undefined,true);
         return {user, userPackage};
     }
 }

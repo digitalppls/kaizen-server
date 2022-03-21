@@ -73,7 +73,7 @@ export class UserProductService {
         const {
             user,
             operations
-        } = await this.userService.walletIncrement(userId, Symbol.USD, -product.priceUsd, OperationType.PRODUCT_BUY, product._id);
+        } = await this.userService.walletIncrement(userId, Symbol.USDT, -product.priceUsd, OperationType.PRODUCT_BUY, product._id);
         const userProduct = await this.add(userId, product);
 
         // Ref Bonuses

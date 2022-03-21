@@ -11,7 +11,6 @@ export enum Symbol {
     TRX = "trx",
     ETH = "eth",
     BNB = "bnb",
-    USD = "usd",
     DEFI = "defi",
     CRYPTO10 = "coin10",
     BITW = "kaizen",

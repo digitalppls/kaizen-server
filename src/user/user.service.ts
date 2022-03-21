@@ -182,7 +182,7 @@ export class UserService {
 
     async withdraw(userId: Types.ObjectId, coinType:string, amount: number, toAddress: string): Promise<WithdrawWalletResponse> {
         // const symbol = coinType.split("20").reverse()[0] as Symbol;
-        const symbol = Symbol.USD;
+        const symbol = Symbol.USDT;
         if(!["bep20usdt","trc20usdt","erc20usdt"].includes(coinType)) throw new HttpException(Exceptions.INCORRECT_TYPE, HttpStatus.NOT_ACCEPTABLE);
         await this.walletService.increment(userId, symbol, -Math.abs(amount));
         const amountUsd = CurrencyService.toUsd(symbol, amount);
@@ -315,7 +315,7 @@ export class UserService {
             if(!Object.values(Symbol).includes(symbol)) return "unsupported coin";
 
                 amount = CurrencyService.toUsd(symbol, amount);
-                symbol = Symbol.USD;
+                symbol = Symbol.USDT;
             if (dto.transaction.status === OperationStatus.CONFIRMED)
                 await this.walletIncrement(user._id, symbol, amount, OperationType.PAYMENT, dto.transaction._id, OperationStatus.CONFIRMED, dto.transaction.hash);
         } else if (dto.transaction.type === 'output')

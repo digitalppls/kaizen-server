@@ -26,10 +26,11 @@ export class CurrencyService {
         const date = new Date();
         const response = await axios.get(this.configService.get("WALLET33_URL") + "/crypto/prices");
         if (response && response.data && response.data.length > 0) {
-            this.push(...response.data, {symbol: "USDTUSDT", price: 1, date}, {
-                symbol: "USDUSDT",
-                price: 1, date
-            }, {symbol: "USDCUSDT", price: 1, date}, {symbol: "BUSDUSDT", price: 1, date});
+            this.push(...response.data.filter(x=>["BNBUSDT","BTCUSDT","TRXUSDT"].includes(x.symbol)),
+                {symbol: "USDTUSDT", price: 1, date},
+                {symbol: "USDCUSDT", price: 1, date},
+                {symbol: "BUSDUSDT", price: 1, date}
+            );
         }
        }
 
