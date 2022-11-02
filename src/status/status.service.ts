@@ -1,4 +1,9 @@
-import {CacheKey, CacheTTL, HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import {
+    HttpException,
+    HttpStatus,
+    Injectable,
+    UseInterceptors
+} from '@nestjs/common';
 import {Model, Types} from "mongoose";
 import {InjectModel} from "@nestjs/mongoose";
 import {Status, StatusDocument} from "./status.schema";
@@ -14,8 +19,6 @@ export class StatusService {
     ) {
     }
 
-    @CacheTTL(10)
-    @CacheKey("statusList")
     async list():Promise<Status[]> {
         const statuses:Status[] =  await this.statusModel.find({}).sort({id:1})
         return statuses;

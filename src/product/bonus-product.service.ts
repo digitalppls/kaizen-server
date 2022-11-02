@@ -1,4 +1,8 @@
-import {CacheKey, CacheTTL, HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import {
+    HttpException,
+    HttpStatus,
+    Injectable,
+} from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
 import {Model, Types} from "mongoose";
 
@@ -15,8 +19,7 @@ export class BonusProductService {
     }
 
 
-    @CacheTTL(10)
-    @CacheKey("RefBonusList")
+
     async bonusList(): Promise<BonusProduct[]> {
         return this.refBonusModel.find({}).sort({line: 1})
     }

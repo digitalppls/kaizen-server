@@ -1,4 +1,11 @@
-import {Body, CacheTTL, Controller, Get, HttpException, HttpStatus, Post, Request} from '@nestjs/common';
+import {
+    Body, CACHE_MANAGER,
+    CacheTTL,
+    Controller,
+    Get, Inject,
+    Post,
+    Request, UseGuards,
+} from '@nestjs/common';
 import {ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags} from "@nestjs/swagger";
 import {Throttle} from "@nestjs/throttler";
 import {PackageService} from "./package.service";
@@ -15,9 +22,11 @@ import {Exceptions} from "src/enums/exceptions.enum";
 import {ListBonusPackageResponse} from "src/package/dto/list-bonus-package.response";
 import {BonusPackage} from "src/package/bonus-package.schema";
 import {BonusPackageService} from "src/package/bonus-package.service";
+import {RateLimiterGuard} from "src/guard/rateLimiter.guard";
 
-@ApiTags("Package")
+@ApiTags("🧑‍🌾 Инвестиционные пакеты")
 @Controller('package')
+@UseGuards(RateLimiterGuard)
 export class PackageController {
 
     constructor(
@@ -30,8 +39,10 @@ export class PackageController {
     @ApiConsumes('application/json', 'application/x-www-form-urlencoded')
     @ApiOperation({summary: "Список инвестиционных пакетов", description: ""})
     @ApiResponse({status: 201, type: ListPackageResponse, description: "Список Пакетов"})
+
     @Throttle(2, 5)
     @CacheTTL(10)
+    // @UseInterceptors(CacheInterceptor)
     async list(): Promise<ListPackageResponse> {
         const list = await this.packageService.list();
         return {list}
@@ -95,7 +106,7 @@ export class PackageController {
     @ApiOperation({summary: "Список линейных бонусов", description: ""})
     @ApiResponse({status: 201, type: ListBonusPackageResponse, description: "Список линейных бонусов по линиям"})
     @Throttle(2, 5)
-    @CacheTTL(10)
+    @UseGuards(RateLimiterGuard)
     async bonusList(): Promise<ListBonusPackageResponse> {
         const list = await this.bonusPackageService.list();
         return {list}

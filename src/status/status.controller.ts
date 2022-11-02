@@ -5,7 +5,7 @@ import {ListStatusResponse} from "src/status/dto/list-status.response";
 import {StatusService} from "src/status/status.service";
 import {Status} from "src/status/status.schema";
 
-@ApiTags("Status")
+@ApiTags("☝️ Статусы")
 @Controller('status')
 export class StatusController {
 

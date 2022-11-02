@@ -11,13 +11,16 @@ export enum Symbol {
     TRX = "trx",
     ETH = "eth",
     BNB = "bnb",
+    VNG = "vng",
+    SRK = "srk",
+    KZN = "kzn",
+}
+
+export enum Index {
     DEFI = "defi",
     CRYPTO10 = "coin10",
     BITW = "kaizen",
     CIX100 = "crypto100",
-    VNG = "vng",
-    SRK = "srk",
-    KZN = "kzn",
 }
 
 export enum Network {

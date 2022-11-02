@@ -1,14 +1,21 @@
-import {Body, Controller, Get, HttpException, HttpStatus, Post, Query, Redirect, Request} from "@nestjs/common";
+import {Body, Controller, Get, Post, Query, Redirect, Request} from "@nestjs/common";
 import {UserService} from "./user.service";
 import {CreateUserDto} from "./dto/create-user.dto";
 import {User} from "./user.schema";
-import {ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags} from "@nestjs/swagger";
+import {
+    ApiBearerAuth,
+    ApiBody,
+    ApiConsumes,
+    ApiOperation,
+    ApiProperty,
+    ApiQuery,
+    ApiResponse,
+    ApiTags
+} from "@nestjs/swagger";
 import {LoginUserDto} from "./dto/login-user.dto";
 import {LoginUserResponse} from "./dto/login-user.response";
 import {RequestModel} from "../auth/auth.middleware";
 import {GetUserResponse} from "./dto/get-user.response";
-import {CallbackWalletDto} from "./dto/callback-wallet.dto";
-import {Schema, Types, ObjectId} from "mongoose";
 import {WalletService} from "../wallet/wallet.service";
 import {Events} from "../socket/events.enum";
 import {SocketGateway} from "../socket/socket.gateway";
@@ -16,15 +23,13 @@ import {CheckLoginDto} from "./dto/check-login.dto";
 import {ChangePasswordDto} from "./dto/change-password.dto";
 import {Throttle} from "@nestjs/throttler";
 import {RecoveryUserDto} from "./dto/recovery-user.dto";
-import {WithdrawWalletResponse} from "./dto/withdraw-wallet.response";
-import {WithdrawWalletDto} from "./dto/withdraw-wallet.dto";
-import {BuyTokenDto} from "src/user/dto/buy-token.dto";
 import {PasswordSetDto} from "src/user/dto/password-set.dto";
-import {Exceptions} from "src/enums/exceptions.enum";
 import {InfoStatResponse} from "src/user/dto/info-stat.response";
+import {ListUserDto} from "src/user/dto/list-user.dto";
+import {ListUserResponse} from "src/user/dto/list-user.response";
 
 @Controller("user")
-@ApiTags("User")
+@ApiTags("🙍 Пользователь")
 export class UserController {
     constructor(
         private readonly userService: UserService,
@@ -45,6 +50,18 @@ export class UserController {
     }
 
 
+    @ApiTags("👨🏻‍💼 Админ")
+    @Post("list")
+    @ApiBearerAuth()
+    @ApiProperty({type:ListUserDto})
+    @ApiResponse({type:ListUserResponse})
+    @ApiOperation({summary:"Получение списка пользователей [👨🏻‍💼 ADMIN]"})
+    async list(@Request() req:RequestModel, @Body() dto:ListUserDto):Promise<ListUserResponse>{
+        return this.userService.list(req.userId, dto);
+    }
+
+
+
     @Post("create")
     @ApiOperation({summary: "Регистрация пользователя", description: ""})
     @ApiBody({type: CreateUserDto})
@@ -63,38 +80,6 @@ export class UserController {
     @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
     async username(@Query("ref") ref: string): Promise<string> {
         return await this.userService.getUserName((ref));
-    }
-
-
-    @Post("wallet/callback")
-    async callback(@Body() dto: CallbackWalletDto): Promise<string> {
-        console.log(dto)
-        if (!dto.transaction) throw new HttpException("transaction not found", HttpStatus.NOT_FOUND);
-        if (!this.walletService.isValid(dto.transaction.hash, dto.secret)) throw new HttpException("Incorrect secret code", HttpStatus.NOT_ACCEPTABLE);
-        return this.userService.wallet33callback(dto);
-    }
-
-    @Post("wallet/create")
-    @ApiBearerAuth()
-    @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
-    @ApiOperation({summary: "Создание кошелька", description: ""})
-    @ApiResponse({status: 201, type: GetUserResponse})
-    async CreateWallet(@Request() req: RequestModel): Promise<GetUserResponse> {
-        const user = await this.userService.walletCreate(req.userId);
-        return {user};
-    }
-
-
-    @Post("wallet/withdraw")
-    @ApiBearerAuth()
-    @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
-    @ApiOperation({summary: "вывод с кошелька", description: ""})
-    @ApiResponse({status: 201, type: WithdrawWalletResponse})
-    async WithdrawWallet(@Request() req: RequestModel, @Body() walletWithdrawDto: WithdrawWalletDto): Promise<WithdrawWalletResponse> {
-        const result = await this.userService.withdraw(req.userId, walletWithdrawDto.coinType, walletWithdrawDto.amount, walletWithdrawDto.toAddress);
-        if (!result) throw new HttpException(Exceptions.WITHDRAW_TEMPORARY_NOT_AVAILABLE, HttpStatus.NOT_ACCEPTABLE);
-        const {operation, user} = result;
-        return {user, operation};
     }
 
 

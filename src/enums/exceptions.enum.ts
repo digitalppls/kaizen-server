@@ -17,4 +17,7 @@ export enum Exceptions {
     CURRENCY_ERROR = "currency_error",
     TOO_LARGE_INTERVAL = "too_large_interval",
     SALE_COMPLETE = "sale_complete",
+    INSUFFICIENT_UNLOCKED_TOKENS="insufficient_unlocked_tokens",
+    INSUFFICIENT_FUND_BALANCE="insufficient_fund_balance",
+    INCORRECT_SWAP_DIRECTION="incorrect_swap_direction",
 }

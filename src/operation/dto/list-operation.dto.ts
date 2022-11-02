@@ -1,7 +1,7 @@
 import {OperationType} from "../operation.schema";
-import {IsEnum, IsInt, IsNumber, IsOptional, IsPositive, Min} from "class-validator";
-import {ApiPropertyOptional} from "@nestjs/swagger";
-
+import {IsEnum, IsInt, IsMongoId, IsNumber, IsOptional, IsPositive, Min} from "class-validator";
+import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
+import {Symbol} from "src/currency/currency.schema";
 
 
 export class ListOperationDto{
@@ -19,4 +19,14 @@ export class ListOperationDto{
     @IsEnum(OperationType)
     @ApiPropertyOptional({type:String,enum:OperationType, description:"Тип операции (если не указан то все)"})
     type?:OperationType;
+
+    @IsOptional()
+    @IsEnum(Symbol)
+    @ApiPropertyOptional({type:String,enum:Symbol, description:"Валюта"})
+    symbol?:Symbol;
+
+    @ApiPropertyOptional({type: String, description: "_id пользователя (Необязательный параметр)"})
+    @IsOptional()
+    @IsMongoId({})
+    userId?: string;
 }

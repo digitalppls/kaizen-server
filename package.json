@@ -10,7 +10,7 @@
 		"prebuild": "rimraf dist",
 		"build": "nest build",
 		"deploy:test": "sh deploy_test.sh",
-		"deploy": "sh deploy.sh",
+		"deploy:prod": "sh deploy_prod.sh",
 		"generateSDK": "npx swagger-typescript-api --axios true --clean-output true --module-name-index 1  --extract-request-params  true  --route-types true --js true --union-enums true --extract-request-body true  -p https://test.api.wallet33.com/wallet33.json -o ./public/sdk -n wightnight.ts",
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
 		"start": "nest start",
@@ -41,7 +41,6 @@
 		"@nestjs/serve-static": "2.2.2",
 		"@nestjs/swagger": "5.0.9",
 		"@nestjs/throttler": "2.0.0",
-		"@nestjs/typeorm": "^8.0.3",
 		"@nestjs/websockets": "8.0.6",
 		"@sendgrid/mail": "^7.4.6",
 		"@types/eslint": "7.28.0",
@@ -64,7 +63,6 @@
 		"rxjs": "7.3.0",
 		"swagger-typescript-api": "9.2.0",
 		"swagger-ui-express": "4.1.6",
-		"typeorm": "^0.2.41",
 		"web3": "^1.7.0"
 	},
 	"devDependencies": {
@@ -102,7 +100,7 @@
 			"json",
 			"ts"
 		],
-		"rootDir": "src",
+		"rootDir": "test",
 		"testRegex": ".spec.ts$",
 		"transform": {
 			"^.+\\.(t|j)s$": "ts-jest"

@@ -1,4 +1,4 @@
-import {CacheTTL, Controller, Get, HttpException, HttpStatus, Query} from '@nestjs/common';
+import {CacheInterceptor, Controller, Get, HttpException, HttpStatus, Query, UseInterceptors} from '@nestjs/common';
 import {CurrencyService} from "src/currency/currency.service";
 import {Currency} from "src/currency/currency.schema";
 import {Throttle} from "@nestjs/throttler";
@@ -6,7 +6,7 @@ import {ApiOperation, ApiProperty, ApiPropertyOptional, ApiQuery, ApiResponse, A
 import {IsInt, IsOptional, IsPositive} from "class-validator";
 import {Exceptions} from "src/enums/exceptions.enum";
 
-@ApiTags("Currency")
+@ApiTags(`💲 Курсы валют`)
 @Controller('currency')
 export class CurrencyController {
 
@@ -18,6 +18,7 @@ export class CurrencyController {
     @ApiOperation({description: "Получение курсов валют"})
     @Get("get")
     @Throttle(100, 10)
+    @UseInterceptors(CacheInterceptor)
     @ApiResponse({type: [Currency]})
     currencyGet(): Currency[] {
         return CurrencyService.getCurrency()
@@ -30,6 +31,7 @@ export class CurrencyController {
     @ApiOperation({description: "Получение истории курса валюты"})
     @Get("history")
     @Throttle(100, 10)
+    @UseInterceptors(CacheInterceptor)
     @ApiResponse({type: [Currency]})
     async currencyHistory(
         @Query("fromTimestamp") fromTimestamp,
@@ -52,7 +54,7 @@ export class CurrencyController {
 
 
 
-    @ApiQuery({type:String, name:"symbols",  description:"Символы , например BTCUSDT,ETHUSDT"})
+    /*@ApiQuery({type:String, name:"symbols",  description:"Символы , например BTCUSDT,ETHUSDT"})
     @ApiOperation({description: "Получение market cap  валют"})
     @Get("cap")
     @Throttle(100, 10)
@@ -68,5 +70,5 @@ export class CurrencyController {
         ]
         const names = symbols.split(",").map(x=>x.toLowerCase().replace(" ",""));
         return arr.filter(x=>names.includes(x.symbol.toLowerCase()));
-    }
+    }*/
 }

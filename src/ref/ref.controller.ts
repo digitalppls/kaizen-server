@@ -8,7 +8,7 @@ import {Exceptions} from "src/enums/exceptions.enum";
 import {RefService} from "src/ref/ref.service";
 import {Types} from "mongoose";
 
-@ApiTags("Ref")
+@ApiTags("🤝 Реферальная система")
 @Controller('ref')
 export class RefController {
 
@@ -27,6 +27,20 @@ export class RefController {
     async list(@Request() req: RequestModel, @Body() dto: LineRefDto): Promise<ListRefResponse> {
         if (dto._id && !Types.ObjectId(dto._id)) throw new HttpException(Exceptions.USER_NOT_FOUND, HttpStatus.NOT_ACCEPTABLE);
         return this.refService.list(req.userId, dto._id ? Types.ObjectId(dto._id) : req.userId, dto.line ? dto.line : 1);
+    }
+
+
+    @ApiTags("👨🏻‍💼 Админ")
+    @Throttle(1, 2)
+    @Post("list/all")
+    @ApiBearerAuth()
+    @ApiOperation({summary: "Список рефералов пользователя на определенной линии (С любого места) (👨🏻‍💼)", description: ""})
+    @ApiBody({type: LineRefDto})
+    @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
+    @ApiResponse({type: ListRefResponse, description: "Список рефералов"})
+    async listAll(@Request() req: RequestModel, @Body() dto: LineRefDto): Promise<ListRefResponse> {
+        if (dto._id && !Types.ObjectId(dto._id)) throw new HttpException(Exceptions.USER_NOT_FOUND, HttpStatus.NOT_ACCEPTABLE);
+        return this.refService.list(req.userId, dto._id ? Types.ObjectId(dto._id) : req.userId, dto.line ? dto.line : 1, true);
     }
 
 

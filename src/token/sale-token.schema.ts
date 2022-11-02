@@ -1,8 +1,17 @@
 import {Prop, Schema, SchemaFactory} from "@nestjs/mongoose";
 import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
 import {Document, Types} from "mongoose";
-import {IsBoolean, IsEnum, IsMongoId, IsNumber, IsOptional, IsPositive, Min} from "class-validator";
+import {IsBoolean, IsEnum, IsMongoId, IsNumber, IsOptional, IsPositive, IsString, Min} from "class-validator";
 import {Symbol} from "src/currency/currency.schema";
+
+export enum SaleType {
+    PRE_SALE="pre_sale",
+    IDO="IDO",
+    PUBLIC_SALE="public_sale",
+    REWARD_FUND="reward_fund",
+    OWNER_FUND="owner_fund"
+}
+
 
 @Schema({autoIndex: true, toJSON: {virtuals: true}, toObject: {virtuals: true}})
 export class SaleToken {
@@ -15,7 +24,7 @@ export class SaleToken {
     @ApiPropertyOptional({type: Number, description: "Раунд"})
     @Prop({index: true, required: true, type: Number})
     @IsNumber()
-    @IsPositive()
+    @Min(0)
     @IsOptional()
     round: number;
 
@@ -53,10 +62,17 @@ export class SaleToken {
     readonly symbol: Symbol;
 
 
+    @ApiProperty({type: String, required: true, description: "Тип сейла", enum:SaleType})
+    @Prop({index: true, required: true, type: String, enum:SaleType})
+    @IsOptional()
+    @IsEnum(SaleType)
+    readonly type: SaleType;
+
+
     @ApiProperty({type: String, required: true, description: "Название раунда"})
     @Prop({index: true, required: true, type: String})
     @IsOptional()
-    @IsEnum(Symbol)
+    @IsString()
     readonly name: string;
 
     @ApiPropertyOptional({type: Number, description: "Цена"})

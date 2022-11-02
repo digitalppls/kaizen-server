@@ -8,6 +8,7 @@ import {SocketGateway} from "../socket/socket.gateway";
 import {ListOperationDto} from "./dto/list-operation.dto";
 import {ListOperationResponse} from "./dto/list-operation.response";
 import {Symbol} from "src/currency/currency.schema";
+import {StatOperationDto} from "src/operation/dto/stat-operation.dto";
 
 @Injectable()
 export class OperationService {
@@ -49,10 +50,44 @@ export class OperationService {
   async list(userId: Types.ObjectId, dto:ListOperationDto):Promise<ListOperationResponse> {
     const filter:any = { userId };
     if(dto.type && dto.type!==OperationType.ALL) filter.type = dto.type;
+    if(dto.symbol) filter.symbol = dto.symbol;
 
     const length = await this.operationModel.countDocuments(filter)
     const operations =  await this.operationModel.find(filter).sort({date:-1}).skip(dto.offset).limit(dto.limit);
     return {length, offset:dto.offset, limit:dto.limit, operations}
+  }
+
+
+
+  async listAllTokenSwaps(userId: Types.ObjectId, symbol:Symbol):Promise<Operation[]> {
+    return this.operationModel.find({userId, symbol, type:{$in:[OperationType.TOKEN_SWAP, OperationType.TOKEN_REF_BONUS]}});
+  }
+
+
+
+  async stat(dto:StatOperationDto):Promise<any> {
+    const filter:any = {  };
+    if(dto.type && dto.type!==OperationType.ALL) filter.type = dto.type;
+
+
+    const pipline = [
+      {$match:{type:dto.type}},
+      {
+        $group: {
+          _id: {symbol:"$symbol", timestamp: {$floor: {$divide: ["$timestamp", dto.groupBy]}}},
+          amount: {$sum: "$amount"},
+          amountUsd: {$sum: "$amountUsd"},
+          symbol: {$first: "$symbol"},
+          date: {$first: "$date"},
+          count: {$sum: 1},
+        }
+      },
+      {$skip:dto.offset},
+      {$limit:dto.limit}
+    ];
+
+    const result = await this.operationModel.aggregate(pipline);
+    return {offset:dto.offset, limit:dto.limit, result}
 
   }
 

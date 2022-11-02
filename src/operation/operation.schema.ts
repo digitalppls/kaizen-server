@@ -35,6 +35,13 @@ export enum OperationType {
     PACKAGE_BUY_FEE = "package_buy_fee",
     CRYPTO_WALLET_CHANGE="crypto_wallet_change",
     TOKEN_REF_BONUS = "token_ref_bonus",
+    CLOSE_LIMIT_ORDER = "close_limit_order",
+    EDIT_LIMIT_ORDER = "edit_limit_order",
+    BUY_LIMIT_ORDER = "buy_limit_order",
+    SELL_LIMIT_ORDER = "sell_limit_order",
+    OPEN_LIMIT_ORDER = "open_limit_order",
+    CHANGE_LIMIT_ORDER = "change_limit_order",
+    BALANCE_UPDATE = "balance_update",
 }
 
 export enum OperationStatus {

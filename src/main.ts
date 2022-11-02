@@ -67,14 +67,13 @@ async function bootstrap() {
       persistAuthorization: true,
       defaultModelsExpandDepth:0,
       defaultModelExpandDepth:0,
-      docExpansion: 'none',
-
+      docExpansion: 'none'
     },
     customSiteTitle: NAME+' API',
   };
-  // swaggerCustomOptions.customSiteTitle = "API";
-  // swaggerCustomOptions.customCss = ".swagger-ui .topbar  {display:none}";
-  // swaggerCustomOptions.customCss += ".swagger-ui .info .title:{max-height:100px}";
+  swaggerCustomOptions.customSiteTitle = NAME+" sAPI";
+  swaggerCustomOptions.customCss = ".swagger-ui .topbar  {display:none}";
+  swaggerCustomOptions.customCss += ".swagger-ui .info .title:{max-height:100px}";
   SwaggerModule.setup("/api", app, document, swaggerCustomOptions);
 
   if (!fs.existsSync("./public")) fs.mkdirSync("./public");
@@ -88,7 +87,7 @@ async function bootstrap() {
     httpClientType: "axios", // or "fetch"
     extractRequestParams: false,
     generateRouteTypes: true,
-    moduleNameFirstTag: true,
+    // moduleNameFirstTag: true,
     generateResponses: true,
     prettier: {
       printWidth: 120,

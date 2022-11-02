@@ -19,7 +19,7 @@ import {BonusProductService} from "src/product/bonus-product.service";
 import {Product} from "src/product/product.schema";
 
 
-@ApiTags("Product")
+@ApiTags("📦 Продукты")
 @Controller('product')
 export class ProductController {
 

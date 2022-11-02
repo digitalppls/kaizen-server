@@ -1,12 +1,18 @@
-import {CacheKey, CacheTTL, HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import {
+    HttpException,
+    HttpStatus,
+    Injectable,
+    UseInterceptors
+} from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
-import {Model} from "mongoose";
+import {Model, Types} from "mongoose";
 
 import {Exceptions} from "src/enums/exceptions.enum";
 import {Symbol} from "src/currency/currency.schema";
-import {SaleToken, SaleTokenDocument} from "src/token/sale-token.schema";
+import {SaleToken, SaleTokenDocument, SaleType} from "src/token/sale-token.schema";
 import {Interval} from "@nestjs/schedule";
 import {CurrencyService} from "src/currency/currency.service";
+import {Wallet} from "src/wallet/wallet.schema";
 
 @Injectable()
 export class SaleTokenService {
@@ -18,29 +24,25 @@ export class SaleTokenService {
     }
 
 
-    @CacheTTL(5)
-    @CacheKey("SaleToken")
     async list(symbol?: Symbol): Promise<SaleToken[]> {
+        console.log("find")
         return this.saleTokenModel.find(symbol?{symbol}:{}).sort({round: 1})
     }
 
-
-
-
-
-    async save(refBonus: SaleToken): Promise<SaleToken> {
-        const values = Object.values(refBonus).filter(x => x)
-        console.log(values);
-        if (values.length === 0)
+    async save(item: SaleToken): Promise<SaleToken> {
+        const valuesLength = Object.values(item).length
+        if (valuesLength === 0)
             throw new HttpException(Exceptions.CONDITIONS_NOT_MET, HttpStatus.NOT_ACCEPTABLE);
-        else if (values.length === 1 && refBonus._id)
-            return this.saleTokenModel.findByIdAndRemove(refBonus._id);
-        else if (refBonus._id)
-            return this.saleTokenModel.findByIdAndUpdate(refBonus._id, {$set: refBonus});
+        else if (valuesLength === 1 && item._id)
+            return this.saleTokenModel.findByIdAndRemove(item._id);
+        else if (item._id) {
+            const updated = await this.saleTokenModel.findByIdAndUpdate(item._id, {$set: item},{new:true});
+            if(updated.isCurrent) await this.saleTokenModel.updateMany({isCurrent:true, _id:{$ne:updated._id}, symbol:updated.symbol},{$set:{isCurrent:false}});
+            return updated;
+        }
         else
-            return this.saleTokenModel.create(refBonus)
+            return this.saleTokenModel.create(item)
     }
-
 
     async getCurrent(symbol:Symbol):Promise<SaleToken> {
         let sale = await this.saleTokenModel.findOne({symbol, isCurrent:true}).sort({round:-1});
@@ -54,9 +56,24 @@ export class SaleTokenService {
         return sale;
     }
 
-    IncrementValue(symbol:Symbol, value: number) {
-        this.saleTokenModel.updateOne({symbol, isCurrent:true},{$inc:{value}}).then()
+
+    async increment(type: SaleType | "current", symbol: Symbol, value: number): Promise<SaleToken> {
+
+        const validator = value < 0 ? {$where: `this.value + ${Math.abs(value)} <= this.maxValue`} : {}
+        const filter = type==="current" ? {isCurrent:true, symbol, ...validator} : {type, symbol, ...validator};
+        const increment = await this.saleTokenModel.findOneAndUpdate(filter, {$inc: {value:-1 * value}}, {
+            upsert: value > 0,
+            new: true
+        });
+
+        if (!increment) {
+            console.log(filter)
+            if (value < 0) throw new HttpException(Exceptions.INSUFFICIENT_FUND_BALANCE, HttpStatus.PAYMENT_REQUIRED);
+            else throw new HttpException(Exceptions.UNKNOWN_ERROR, HttpStatus.CONFLICT);
+        }
+        return increment;
     }
+
 
     @Interval(10000)
     private async saveCurrentPriceToCurrency() {

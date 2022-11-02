@@ -1,6 +1,6 @@
 import {Prop, Schema, SchemaFactory} from "@nestjs/mongoose";
 import {ApiProperty} from "@nestjs/swagger";
-import {Document, Model, Types} from "mongoose";
+import {Document, Types} from "mongoose";
 import {Wallet} from "../wallet/wallet.schema";
 import {CurrencyService} from "../currency/currency.service";
 import {UserProduct} from "src/product/user-product.schema";
@@ -11,7 +11,14 @@ export enum UserPermission {
     PACKAGE_BONUS_SAVE = "/api/package/bonus/save",
     PRODUCT_BONUS_SAVE = "/api/product/bonus/save",
     PRODUCT_SAVE = "/api/product/save",
-    PACKAGE_SAVE = "/api/package/save"
+    PACKAGE_SAVE = "/api/package/save",
+    SALE_SAVE = "/api/token/sale/save",
+    LIMIT_ORDER_BUY = "/api/token/limit-order/buy/save",
+    OPERATION_STAT = "/api/operation/stat",
+    USER_LIST = "/api/user/list",
+    REF_LIST_ALL = "/api/ref/list/all",
+    OPERATION_LIST_OTHER = "/api/operation/list/other",
+    TOKEN_INCREMENT = "/api/token/increment",
 }
 
 @Schema({autoIndex: true, toJSON: {virtuals: true}, toObject: {virtuals: true}})

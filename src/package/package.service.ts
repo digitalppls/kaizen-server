@@ -1,4 +1,9 @@
-import {CacheTTL, HttpException, HttpStatus, Injectable, Logger} from '@nestjs/common';
+import {
+    HttpException,
+    HttpStatus,
+    Injectable,
+    Logger,
+} from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
 import {Model, Types} from "mongoose";
 import {Package, PackageDocument} from "./package.schema";
@@ -31,13 +36,13 @@ export class PackageService {
     }
 
 
-    @CacheTTL(20)
+
     async list(): Promise<Package[]> {
         return this.packageModel.find({}).sort({line: 1});
     }
 
 
-    @CacheTTL(20)
+
     async get(_id: string | Types.ObjectId): Promise<Package> {
         return this.packageModel.findById(_id);
     }

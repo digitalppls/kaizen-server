@@ -34,19 +34,18 @@ export class EmailService {
 
 
 
-
-
-
     sendVerify(email: string) {
         const code = EmailService.random_digits()+'';
         const finded = this.codes.find(x=>x.email===email);
         if(finded) finded.code = code; else this.codes.unshift({email,code});
         if(this.codes.length>10000) this.codes.pop();
 
-        const url = "https://kaizenfund.io/api/user/email/verify/check?code=" + code+"&email="+email;
+        const NAME = this.configService.get("NAME");
+        const DOMAIN = this.configService.get("DOMAIN");
+        const url = `https://${DOMAIN}/api/user/email/verify/check?code=` + code+"&email="+email;
         const msg = {
             to:email, // Change to your recipient
-            from: 'Kaizen Fund <noreply@kaizenfund.io>', // Change to your verified sender
+            from: `${NAME} <noreply@${DOMAIN}>`, // Change to your verified sender
             subject: 'Email verification',
             text: 'Please confirm your email: '+url ,
             html: '<a href="'+url+'">Confirm your email</a>',
@@ -58,20 +57,24 @@ export class EmailService {
                 console.log('Email sent')
             })
             .catch((error) => {
-                console.error(error)
+                console.error(error?.response?.body?.errors || error)
             })
     }
 
     sendRecovery(email: string) {
+
+        const NAME = this.configService.get("NAME");
+        const DOMAIN = this.configService.get("DOMAIN");
+
         const code = EmailService.random_string()+'';
         const finded = this.codes.find(x=>x.email===email);
         if(finded) finded.code = code; else this.codes.unshift({email,code});
         if(this.codes.length>10000) this.codes.pop();
 
-        const url = "https://kaizenfund.io/new-password?code=" + code + "&email="+email;
+        const url = `https://${DOMAIN}/new-password?code=` + code + "&email="+email;
         const msg = {
             to:email, // Change to your recipient
-            from: 'Kaizen Fund <noreply@kaizenfund.io>', // Change to your verified sender
+            from: `${NAME} <noreply@${DOMAIN}>`, // Change to your verified sender
             subject: 'Change password',
             text: 'Click to link for set new password: '+url ,
             html: '<a href="'+url+'">Set new password</a>',
@@ -83,17 +86,21 @@ export class EmailService {
                 console.log('Email sent')
             })
             .catch((error) => {
-                console.error(error)
+                console.error(error?.response?.body?.errors || error)
             })
     }
 
     async sendApply(dto: ApplyProduct) {
+
+        const NAME = this.configService.get("NAME");
+        const DOMAIN = this.configService.get("DOMAIN");
+
           const msg = {
             to:dto.email, // Change to your recipient
-            from: 'Kaizen Fund <noreply@kaizenfund.io>', // Change to your verified sender
+            from: `${NAME} <noreply@${DOMAIN}>`, // Change to your verified sender
             subject: 'New apply'+(dto.service?(' ('+dto.service+")"):''),
-            text: Object.keys(dto).map(x=>x+": "+dto[x]).join("<br/>")+"<br/><br/>Kaizen Fund https://kaizenfund.io/",
-            html: Object.keys(dto).map(x=>"<b>"+x+"</b>: "+dto[x]).join("<br/>")+"<br/><br/><a href='https://kaizenfund.io'>Kaizen Fund </a>",
+            text: Object.keys(dto).map(x=>x+": "+dto[x]).join("<br/>")+`<br/><br/>${NAME} https://${DOMAIN}/`,
+            html: Object.keys(dto).map(x=>"<b>"+x+"</b>: "+dto[x]).join("<br/>")+`<br/><br/><a href='https://${DOMAIN}'>${NAME}</a>`,
         }
         sgMail
             .send(msg)
@@ -101,7 +108,7 @@ export class EmailService {
                 console.log('Email sent')
             })
             .catch((error) => {
-                console.error(error)
+                console.error(error?.response?.body?.errors || error)
             })
     }
 }

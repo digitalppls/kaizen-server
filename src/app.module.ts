@@ -1,4 +1,4 @@
-import {MiddlewareConsumer, Module} from "@nestjs/common";
+import {CacheInterceptor, CacheModule, MiddlewareConsumer, Module} from "@nestjs/common";
 import {MongooseModule} from "@nestjs/mongoose";
 import {ConfigModule, ConfigService} from "@nestjs/config";
 import {EventEmitterModule} from "@nestjs/event-emitter";
@@ -20,28 +20,14 @@ import {TokenModule} from './token/token.module';
 import {RefModule} from './ref/ref.module';
 import {ProductModule} from "src/product/product.module";
 
-
-
 @Module({
     imports: [
 
-
         ScheduleModule.forRoot(),
-
-
-        ThrottlerModule.forRoot({
-            ttl: JwtStrategy.ttl,
-            limit: JwtStrategy.ttl_limit
-        }),
-
+        ThrottlerModule.forRoot({ttl: JwtStrategy.ttl, limit: JwtStrategy.ttl_limit}),
         EventEmitterModule.forRoot(),
-
         ConfigModule.forRoot({isGlobal: true}),
-
-        ServeStaticModule.forRoot({
-            serveRoot: '/api/public',
-            rootPath: join(__dirname, "../", "public")
-        }),
+        ServeStaticModule.forRoot({serveRoot: '/api/public', rootPath: join(__dirname, "../", "public")}),
 
         // База в облоке для хранения важных данных
         MongooseModule.forRootAsync({
@@ -54,6 +40,7 @@ import {ProductModule} from "src/product/product.module";
             inject: [ConfigService]
         }),
 
+
         WalletModule,
         CurrencyModule,
         AuthModule,
@@ -63,9 +50,10 @@ import {ProductModule} from "src/product/product.module";
         PackageModule,
         ProductModule,
         TokenModule,
-        RefModule,
+        RefModule
     ],
     controllers: [],
+
 })
 
 export class AppModule {
@@ -80,8 +68,11 @@ export class AppModule {
                 "/api/currency/history",
                 "/api/currency/get",
                 "/api/token/bonus/list",
+                "/api/token/swap/list",
                 "/api/token/(.*)/sale/list",
+                "/api/fund/list",
                 "/api/status/list",
+                "/api/user/wallet/withdraw/list",
                 "/api/user/create",
                 "/api/user/login",
                 "/api/user/username/get",

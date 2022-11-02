@@ -16,8 +16,8 @@ export class RefService {
     ) {
     }
 
-    async list(myId: Types.ObjectId, userId: Types.ObjectId, line: number):Promise<ListRefResponse> {
-        const users: User[] = await this.userService.refLine(myId, userId, line);
+    async list(myId: Types.ObjectId, userId: Types.ObjectId, line: number, admin:boolean = false):Promise<ListRefResponse> {
+        const users: User[] = await this.userService.refLine(myId, userId, line, admin);
         const allStructureIds: Types.ObjectId[] = await this.userService.childsIds([userId,...users.map(x=>x._id)]);
         const aggregateSums = await this.operationService.sumUsd(allStructureIds, [OperationType.PACKAGE_BUY, OperationType.PRODUCT_BUY])
 

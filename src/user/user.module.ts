@@ -9,6 +9,7 @@ import {SocketModule} from "src/socket/socket.module";
 import {AuthModule} from "src/auth/auth.module";
 import {EmailModule} from "src/email/email.module";
 import {StatusModule} from "src/status/status.module";
+import {UserWalletController} from "src/user/user-wallet.controller";
 
 @Module({
     imports: [
@@ -23,7 +24,7 @@ import {StatusModule} from "src/status/status.module";
         ], "cloudDB")
     ],
     providers: [UserService],
-    controllers: [UserController],
+    controllers: [UserController, UserWalletController],
     exports: [UserService]
 })
 export class UserModule {

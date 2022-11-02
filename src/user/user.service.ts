@@ -1,7 +1,7 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 
 import {User, UserDocument, UserPermission} from "./user.schema";
-import {Model, Schema, Types, ObjectId} from "mongoose";
+import {Model, Types} from "mongoose";
 import {InjectModel} from "@nestjs/mongoose";
 
 import {WalletService} from "../wallet/wallet.service";
@@ -28,12 +28,15 @@ import {StatusService} from "src/status/status.service";
 import {InfoStatResponse} from "src/user/dto/info-stat.response";
 import {Symbol} from "src/currency/currency.schema";
 import {Status} from "src/status/status.schema";
-
+import {ListUserDto} from "src/user/dto/list-user.dto";
+import {ListUserResponse} from "src/user/dto/list-user.response";
 
 
 @Injectable()
 export class UserService {
 
+    public WITHDRAW_ALLOWED:Symbol[] = [Symbol.USDC, Symbol.BUSD, Symbol.USDT];
+    private lastNumId: number = 0;
 
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
@@ -42,17 +45,19 @@ export class UserService {
         private readonly socketGateway: SocketGateway,
         private readonly operationService: OperationService,
         private readonly sendGridService: EmailService,
-        private readonly statusService:StatusService,
+        private readonly statusService: StatusService,
     ) {
+        this.userModel.findOne({}).sort({num_id:-1}).then(row=>{
+            this.lastNumId = row?.num_id || 0;
+        })
     }
 
 
     async findAgents(): Promise<User[]> {
-        return this.userModel.find({permissions: UserPermission.SUPPORT});
+        return await this.userModel.find({permissions: UserPermission.SUPPORT});
     }
 
     async create(createUserDto: CreateUserDto | CreateUserTelegramDto, withWallets: boolean = false): Promise<User> {
-
 
 
         if (createUserDto.email && await this.userModel.findOne({email: createUserDto.email.toLowerCase()}))
@@ -60,9 +65,9 @@ export class UserService {
 
         let fathers = [];
         if (createUserDto.ref) {
-            const q = createUserDto.ref.length===24 ? {_id:Types.ObjectId(createUserDto.ref)} : {num_id:Number(createUserDto.ref)}
+            const q = createUserDto.ref.length === 24 ? {_id: Types.ObjectId(createUserDto.ref)} : {num_id: Number(createUserDto.ref)}
             const father = await this.findOne(q, false);
-            fathers = father.fathers;
+            fathers = father?.fathers || [];
             fathers.unshift(father._id);
         }
 
@@ -71,10 +76,8 @@ export class UserService {
 
 
 
-        const count = await this.userModel.countDocuments();
-
         return await this.userModel.create({
-            num_id: count + 1,
+            num_id: ++this.lastNumId,
             fathers,
             email: email.toLowerCase(),
             password: await this.hashPassword(password),
@@ -98,21 +101,10 @@ export class UserService {
 
     }
 
-    private async hashPassword(password: string): Promise<string> {
-        return this.authService.hashPassword(password);
-    }
-
-    private async validatePassword(password: string, storedPasswordHash: string): Promise<any> {
-
-        console.log({password, storedPasswordHash})
-
-        return this.authService.comparePasswords(password, storedPasswordHash);
-    }
-
     async walletCreate(userId: Types.ObjectId): Promise<User> {
         const {_id, assets} = await this.walletService.create();
 
-        const user = await this.userModel.findOneAndUpdate({
+        const user =  this.userModel.findOneAndUpdate({
             _id: userId,
             emailVerified: true,
             wallet33Id: null
@@ -123,7 +115,7 @@ export class UserService {
             return user;
     }
 
-    public async walletIncrement(userId: Types.ObjectId, symbol: Symbol, amount: number, type: OperationType, targetId?: Types.ObjectId, status?: OperationStatus, hash?: string, customerId?: Types.ObjectId, updateUser:boolean=true, line?:number): Promise<{ user: User; operations: Operation[] }> {
+    public async walletIncrement(userId: Types.ObjectId, symbol: Symbol, amount: number, type: OperationType, targetId?: Types.ObjectId, status?: OperationStatus, hash?: string, customerId?: Types.ObjectId, updateUser: boolean = true, line?: number): Promise<{ user: User; operations: Operation[] }> {
         const operations: Operation[] = [];
 
         // if (symbol.substring(0, 1) === "!") { // Перебираем все кошельки кроме одного и в эквиваленте в $ берем
@@ -140,9 +132,15 @@ export class UserService {
         //         }, status, hash, customerId,line));
         //     }
         // } else {
-            await this.walletService.increment(userId, symbol, amount);
-            operations.push(await this.operationService.create({amount, symbol, userId, type, targetId}, status, hash,customerId,line));
-       // }
+        await this.walletService.increment(userId, symbol, amount);
+        operations.push(await this.operationService.create({
+            amount,
+            symbol,
+            userId,
+            type,
+            targetId
+        }, status, hash, customerId, line));
+        // }
 
         if (updateUser) {
             const user = await this.findOne(userId, true);
@@ -154,10 +152,10 @@ export class UserService {
     }
 
     async findOne(query: any | Types.ObjectId | string | number, wallets?: boolean): Promise<User> {
-        console.log(typeof query, query)
+        console.log(typeof query, query, wallets)
         const q = (typeof query === 'object')
-            ? this.userModel.findOne(query)
-            : this.userModel.findById(typeof query === "string" ? Types.ObjectId(query) : query);
+            ?  this.userModel.findOne(query)
+            :  this.userModel.findById(typeof query === "string" ? Types.ObjectId(query) : query);
         return wallets ? q.populate("wallets") : q;
     }
 
@@ -168,7 +166,7 @@ export class UserService {
 
     async loginChange(userId: Types.ObjectId, login: string): Promise<User> {
         if (await this.loginCheck(login)) throw new HttpException(Exceptions.ALREADY_EXIST, HttpStatus.CONFLICT)
-        return this.userModel.findByIdAndUpdate(userId, {$set: {login}}, {new: true}).populate("wallets");
+        return  this.userModel.findByIdAndUpdate(userId, {$set: {login}}, {new: true}).populate("wallets");
     }
 
     async passwordChange(userId: Types.ObjectId, dto: ChangePasswordDto): Promise<User> {
@@ -180,21 +178,30 @@ export class UserService {
         return user;
     }
 
-    async withdraw(userId: Types.ObjectId, coinType:string, amount: number, toAddress: string): Promise<WithdrawWalletResponse> {
+    async withdraw(userId: Types.ObjectId, coinType: string, amount: number, toAddress: string): Promise<WithdrawWalletResponse> {
         // const symbol = coinType.split("20").reverse()[0] as Symbol;
-        const symbol = Symbol.USDT;
-        if(!["bep20usdt","trc20usdt","erc20usdt"].includes(coinType)) throw new HttpException(Exceptions.INCORRECT_TYPE, HttpStatus.NOT_ACCEPTABLE);
+
+        const symbol:Symbol = coinType.split("20")[1] as Symbol;
+        if (!this.WITHDRAW_ALLOWED.includes(symbol)) throw new HttpException(Exceptions.INCORRECT_TYPE, HttpStatus.NOT_ACCEPTABLE);
+
+
         await this.walletService.increment(userId, symbol, -Math.abs(amount));
-        const amountUsd = CurrencyService.toUsd(symbol, amount);
+        // const amountUsd = CurrencyService.toUsd(symbol, amount);
         const user = await this.findOne(userId, true);
 
         let transaction;
         try {
             transaction = await this.walletService.transactionSend(user.wallet33Id, coinType, amount, toAddress)
             this.socketGateway.emitOne(user._id, Events.USER_UPDATE, user);
-            const operation = await this.operationService.create({amount, symbol, userId, type: OperationType.WITHDRAW, targetId: transaction._id}, OperationStatus.TRANSACTION);
+            const operation = await this.operationService.create({
+                amount,
+                symbol,
+                userId,
+                type: OperationType.WITHDRAW,
+                targetId: transaction._id
+            }, OperationStatus.TRANSACTION);
             return {user, operation}
-        }catch (err){
+        } catch (err) {
             // RETURN AMOUNT
             await this.walletService.increment(userId, symbol, Math.abs(amount));
             console.error(err.request?.data?.message);
@@ -228,31 +235,45 @@ export class UserService {
         return true;
     }
 
-    async checkStatusUp(users:User[]):Promise<{user:User, newStatus:Status}[]> {
-        // Check status update - проверяем не достгнут ли новый статус
-        const list: {user:User, newStatus:Status}[] = [];
-        for(let user of users){
-            // Находим тех за кого получали линайных бонус в 1 линии
+    async checkStatusUp(users: User[]): Promise<{ user: User, newStatus: Status }[]> {
+        // Check status update - проверяем не досягнут ли новый статус
+        const list: { user: User, newStatus: Status }[] = [];
+        for (let user of users) {
+            // Находим тех за кого получали линейных бонус в 1 линии
             const {self_invest_usd, first_line_invest_usd, structure_invest_usd} = await this.statInfo(user._id)
-            const nextStatus = await this.statusService.getNextStatusByParams({self_invest_usd,first_line_invest_usd,structure_invest_usd})
-            if(nextStatus && user.status<nextStatus.id){
-                await this.userModel.updateOne({_id:user._id},{$set:{status:nextStatus.id}});
+            const nextStatus = await this.statusService.getNextStatusByParams({
+                self_invest_usd,
+                first_line_invest_usd,
+                structure_invest_usd
+            })
+            if (nextStatus && user.status < nextStatus.id) {
+                await this.userModel.updateOne({_id: user._id}, {$set: {status: nextStatus.id}});
                 const amount = CurrencyService.fromUsd(nextStatus.prize_symbol, nextStatus.prize_usd);
-                await this.walletIncrement(user._id, nextStatus.prize_symbol, amount, OperationType.STATUS_UP_BONUS, nextStatus._id, undefined,undefined,undefined,true, nextStatus.id);
-                list.push({user, newStatus:nextStatus });
+                await this.walletIncrement(user._id, nextStatus.prize_symbol, amount, OperationType.STATUS_UP_BONUS, nextStatus._id, undefined, undefined, undefined, true, nextStatus.id);
+                list.push({user, newStatus: nextStatus});
             }
         }
         return list;
     }
 
-    async statInfo(userId:Types.ObjectId):Promise<InfoStatResponse>{
+
+    async list(userId: Types.ObjectId, dto: ListUserDto):Promise<ListUserResponse> {
+        const filter:any = {};
+        const length = await this.userModel.countDocuments(filter)
+        const users =  await this.userModel.find(filter).sort({date:-1}).skip(dto.offset).limit(dto.limit).populate("wallets").populate("father");
+        // const aggregateSums = await this.operationService.sumUsd(users.map(x=>x._id), [OperationType.TOKEN_SWAP])
+
+        return {length, offset:dto.offset, limit:dto.limit, users}
+    }
+
+    async statInfo(userId: Types.ObjectId): Promise<InfoStatResponse> {
         const firstLinePartners = await this.operationService.findCustomersOfOperations(userId, OperationType.PACKAGE_REF_BONUS, 1);
         const allPartners = await this.operationService.findCustomersOfOperations(userId, OperationType.PACKAGE_REF_BONUS);
         const self_invest_usd = Math.abs(await this.operationService.sumOfInvests([userId]));
         const first_line_invest_usd = Math.abs(await this.operationService.sumOfInvests(firstLinePartners));
         const structure_invest_usd = Math.abs(await this.operationService.sumOfInvests(allPartners));
 
-        console.log({firstLinePartners,allPartners,self_invest_usd,first_line_invest_usd,structure_invest_usd})
+        console.log({firstLinePartners, allPartners, self_invest_usd, first_line_invest_usd, structure_invest_usd})
 
         return {self_invest_usd, first_line_invest_usd, structure_invest_usd}
     }
@@ -272,21 +293,21 @@ export class UserService {
     }
 
     async getUserName(_id: string | number): Promise<string> {
-        const q = (_id+"").length===24 ? {_id} : {num_id:Number(_id)}
+        const q = (_id + "").length === 24 ? {_id} : {num_id: Number(_id)}
         console.log({q})
         const user = await this.userModel.findOne(q, {username: 1});
-        if(!user) throw new HttpException(Exceptions.USER_NOT_FOUND,HttpStatus.NOT_FOUND);
-            return user.username
+        if (!user) throw new HttpException(Exceptions.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+        return user.username
     }
 
-    async refLine(myId: Types.ObjectId, userId: Types.ObjectId, line: number): Promise<User[]> {
+    async refLine(myId: Types.ObjectId, userId: Types.ObjectId, line: number, admin:boolean=false): Promise<User[]> {
         const user = await this.userModel.findById(userId, {fathers: true});
         if (!user) throw new HttpException(Exceptions.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
 
         console.log(user)
 
-        if (user._id + '' != '' + myId && !(user.fathers.map(x => x + '').includes(myId + ''))) throw new HttpException(Exceptions.ACCESS_DENY, HttpStatus.NOT_ACCEPTABLE);
-        return this.userModel.find({["fathers." + (line - 1)]: userId}, {
+        if (!admin && user._id + '' != '' + myId && !(user.fathers.map(x => x + '').includes(myId + ''))) throw new HttpException(Exceptions.ACCESS_DENY, HttpStatus.NOT_ACCEPTABLE);
+        return  this.userModel.find({["fathers." + (line - 1)]: userId}, {
             date: 1,
             username: 1,
             login: 1,
@@ -296,26 +317,27 @@ export class UserService {
     }
 
     async getRefNum(_id: Types.ObjectId): Promise<number> {
-        return this.userModel.countDocuments({"fathers.0": _id});
+        return await this.userModel.countDocuments({"fathers.0": _id});
     }
 
-
-    async listUserFatherStatuses(user:User):Promise<User[]>{
-       return this.userModel.find({_id:{$in:user.fathers}},{status:1});
+    async listUserFatherStatuses(user: User): Promise<User[]> {
+        return await this.userModel.find({_id: {$in: user.fathers}}, {status: 1});
     }
 
-    async wallet33callback(dto: CallbackWalletDto):Promise<string> {
-        const wallet33Id =  Types.ObjectId(dto.transaction.toWalletId);
+    async wallet33callback(dto: CallbackWalletDto): Promise<string> {
+        const wallet33Id = Types.ObjectId(dto.transaction.toWalletId);
         const user: User = await this.findOne({wallet33Id}, false);
         if (!user) return "user not found";
         if (dto.transaction.type === "input") {
             let symbol = dto.transaction.coinType.split("20").reverse()[0] as Symbol;
             let amount = dto.transaction.amount;
 
-            if(!Object.values(Symbol).includes(symbol)) return "unsupported coin";
 
-                amount = CurrencyService.toUsd(symbol, amount);
-                symbol = Symbol.USDT;
+            const values = Object.values(Symbol as object);
+            if (!values.includes(symbol)) return "unsupported coin";
+
+            amount = CurrencyService.toUsd(symbol, amount);
+            symbol = Symbol.USDT;
             if (dto.transaction.status === OperationStatus.CONFIRMED)
                 await this.walletIncrement(user._id, symbol, amount, OperationType.PAYMENT, dto.transaction._id, OperationStatus.CONFIRMED, dto.transaction.hash);
         } else if (dto.transaction.type === 'output')
@@ -323,14 +345,25 @@ export class UserService {
         return "ok"
     }
 
-    setLanguageCode(userId:Types.ObjectId, language_code: string) {
-        this.userModel.updateOne({_id:userId},{$set:{language_code}}).then();
+    setLanguageCode(userId: Types.ObjectId, language_code: string) {
+        this.userModel.updateOne({_id: userId}, {$set: {language_code}}).then();
     }
 
-    async childsIds(fathers: Types.ObjectId[]):Promise<Types.ObjectId[]> {
+    async childsIds(fathers: Types.ObjectId[]): Promise<Types.ObjectId[]> {
         return (await this.userModel.aggregate([
-            {$match:{fathers:{$in:fathers}}},
-            {$project:{_id:true}}
-        ])).map(x=>x._id)
+            {$match: {fathers: {$in: fathers}}},
+            {$project: {_id: true}}
+        ])).map(x => x._id)
+    }
+
+    private async hashPassword(password: string): Promise<string> {
+        return this.authService.hashPassword(password);
+    }
+
+    private async validatePassword(password: string, storedPasswordHash: string): Promise<any> {
+
+        console.log({password, storedPasswordHash})
+
+        return this.authService.comparePasswords(password, storedPasswordHash);
     }
 }
